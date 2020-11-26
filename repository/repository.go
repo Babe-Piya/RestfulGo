@@ -21,7 +21,7 @@ func (tr *TodoRepo) Add(todo *entity.Todo) (int64, error) {
 
 	}
 	tr.TodoList = append(tr.TodoList, todo)
-	log.Print("todo list here", tr.TodoList)
+	log.Print("todo list post here", tr.TodoList)
 
 	return todo.Id, nil
 }
@@ -29,7 +29,7 @@ func (tr *TodoRepo) Add(todo *entity.Todo) (int64, error) {
 func (tr *TodoRepo) Get() []entity.Todo {
 	var todoList []entity.Todo
 	for _, todo := range tr.TodoList {
-		log.Println("todo is ", todo)
+		log.Println("todolist get is ", todo)
 		todoList = append(todoList, *todo)
 	}
 	return todoList
