@@ -48,6 +48,9 @@ func (uc TodoUsecase) Update(Id int64,todo *entity.Todo) (entity.Todo,error){
 			if todo.Title == "" {
 				todo.Title = value.Title
 			}
+			if todo.IsDone == false {
+				todo.IsDone = value.IsDone
+			}
 			return uc.repo.Update(Id,todo)
 		} 
 	} 

@@ -16,6 +16,7 @@ type Req struct {
 type ReqPut struct {
 	Content string `json:"content"`
 	Title   string `json:"title"`
+	IsDone bool  `json: "isDone"`
 }
 
 func CreateHandler(ucm usecase.TodoUsecaseInterface) Handler {

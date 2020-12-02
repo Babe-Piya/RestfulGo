@@ -11,14 +11,14 @@ func (rh *Handler) Add(c *gin.Context) {
 	var body Req
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(400, gin.H{
-			"data": err,
+			"data": err.Error(),
 		})
 		return
 	}
 	result, _ := rh.uc.Add(&entity.Todo{
 		Title:    body.Title,
 		Content:  body.Content,
-		IsDone:   true,
+		IsDone:   false,
 		CreateAt: time.Now(),
 	})
 	c.JSON(201, gin.H{

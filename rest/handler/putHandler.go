@@ -20,20 +20,20 @@ func (rh *Handler) Put(c *gin.Context) {
 		if err != nil {
 			log.Print(err)
 			c.JSON(400, gin.H{
-				"data": err,
+				"data": err.Error(),
 			})
 			return
 		}
 		result,err := rh.uc.Update(id,&entity.Todo{
 			Title:    body.Title,
 			Content:  body.Content,
-			IsDone:   true,
+			IsDone:   body.IsDone,
 			CreateAt: time.Now(),
 		})
 		if err != nil {
 			log.Println(err)
 			c.JSON(400, gin.H{
-				"data": err,
+				"data": err.Error(),
 			})
 			return
 		}

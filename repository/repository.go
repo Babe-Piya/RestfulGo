@@ -1,27 +1,24 @@
 package repository
 
 import (
-	"log"
+	// "log"
 	"restfulGo/entity"
 )
 
 type TodoRepo struct {
 	TodoList []*entity.Todo
+	InitId int64 
 }
 
 func CreateRepo() TodoRepoInterface {
-	return &TodoRepo{}
+	return &TodoRepo{InitId:1}
 }
 
 func (tr *TodoRepo) Add(todo *entity.Todo) (int64, error) {
-	if len(tr.TodoList) == 0 {
-		todo.Id = 1
-	} else {
-		todo.Id = tr.TodoList[len(tr.TodoList)-1].Id + 1
-
-	}
+	todo.Id = tr.InitId
 	tr.TodoList = append(tr.TodoList, todo)
-	log.Print("todo list post here", tr.TodoList)
+	tr.InitId++
+	// log.Print("todo list post here", tr.TodoList)
 
 	return todo.Id, nil
 }
@@ -29,7 +26,7 @@ func (tr *TodoRepo) Add(todo *entity.Todo) (int64, error) {
 func (tr *TodoRepo) Get() []entity.Todo {
 	var todoList []entity.Todo
 	for _, todo := range tr.TodoList {
-		log.Println("todolist get is ", todo)
+		// log.Println("todolist get is ", todo)
 		todoList = append(todoList, *todo)
 	}
 	return todoList
