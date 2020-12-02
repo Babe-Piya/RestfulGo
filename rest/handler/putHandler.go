@@ -1,15 +1,13 @@
 package handler
 
 import (
-	"time"
-	"restfulGo/entity"
 	"log"
 	"strconv"
 	"github.com/gin-gonic/gin"
 )
 
 func (rh *Handler) Put(c *gin.Context) {
-	var body ReqPut
+	var body map[string]interface{}
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(400, gin.H{
 				"data": err,
@@ -24,12 +22,7 @@ func (rh *Handler) Put(c *gin.Context) {
 			})
 			return
 		}
-		result,err := rh.uc.Update(id,&entity.Todo{
-			Title:    body.Title,
-			Content:  body.Content,
-			IsDone:   body.IsDone,
-			CreateAt: time.Now(),
-		})
+		result,err := rh.uc.Update(id,body)
 		if err != nil {
 			log.Println(err)
 			c.JSON(400, gin.H{

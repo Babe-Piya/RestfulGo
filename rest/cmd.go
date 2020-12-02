@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"restfulGo/pkg/database"
 	"restfulGo/repository"
 	"restfulGo/usecase"
 	"restfulGo/rest/handler"
@@ -8,7 +9,8 @@ import (
 )
 
 func LetGo () {
-	repo := repository.CreateRepo()
+	database.InitDB()
+	repo := repository.CreateRepo(database.DB)
 	uc := usecase.CreateUsecase(repo)
 	rest := handler.CreateHandler(uc)
 	runGin := gin.Default()
@@ -18,5 +20,5 @@ func LetGo () {
 	runGin.DELETE("/:id",rest.Del )
 	runGin.PUT("/:id",rest.Put )
 
-	runGin.Run()
+	runGin.Run(":8081")
 }

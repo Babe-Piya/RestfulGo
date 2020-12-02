@@ -1,64 +1,100 @@
 package repository
 
 import (
-	// "log"
+	"strings"
+	"errors"
+	"database/sql"
+	"log"
 	"restfulGo/entity"
 )
 
 type TodoRepo struct {
-	TodoList []*entity.Todo
-	InitId int64 
+	DB *sql.DB
 }
 
-func CreateRepo() TodoRepoInterface {
-	return &TodoRepo{InitId:1}
+func CreateRepo(db *sql.DB) TodoRepoInterface {
+	return &TodoRepo{DB:db}
 }
 
 func (tr *TodoRepo) Add(todo *entity.Todo) (int64, error) {
-	todo.Id = tr.InitId
-	tr.TodoList = append(tr.TodoList, todo)
-	tr.InitId++
-	// log.Print("todo list post here", tr.TodoList)
+	stm,err := tr.DB.Prepare("INSERT INTO todo.todo (TITLE,CONTENT) VALUE (?,?)")
+	if err!= nil {
+		return 0,errors.New("error")
+	}
+	defer stm.Close()
 
-	return todo.Id, nil
+	result,err := stm.Exec(&todo.Title,&todo.Content)
+	if err!= nil {
+		return 0,errors.New("error")
+	}
+	id,_ := result.LastInsertId()
+
+	return id, nil
 }
 
 func (tr *TodoRepo) Get() []entity.Todo {
-	var todoList []entity.Todo
-	for _, todo := range tr.TodoList {
-		// log.Println("todolist get is ", todo)
-		todoList = append(todoList, *todo)
+	result,_ := tr.DB.Query("SELECT ID,TITLE,CONTENT,IS_DONE,CREATE_AT FROM todo.todo")
+	defer result.Close()
+	var todolist []entity.Todo
+	for result.Next(){
+		var todo entity.Todo
+		err := result.Scan(
+			&todo.Id,
+			&todo.Title,
+			&todo.Content,
+			&todo.IsDone,
+			&todo.CreateAt,
+		)
+		if err != nil {
+			log.Print("error")
+		}
+		todolist = append(todolist,todo)
+
 	}
-	return todoList
+	return todolist
 
 }
 
 func (tr *TodoRepo) Del(Id int64) (entity.Todo, error) {
+	getbyID,err := tr.GetById(Id)
+	if err != nil{
+		return getbyID,err
+	}
+	
+	result,err := tr.DB.Query("DELETE  FROM todo.todo WHERE ID = ?" , Id)
+	defer result.Close()
+	if err != nil{
+		return getbyID,err
+	}
+
+	return getbyID,nil
+}
+
+func (tr *TodoRepo) Update(Id int64, todo map[string]interface{}) (entity.Todo,error){
 	var todoList *entity.Todo
-	for index:= range tr.TodoList {
-		if tr.TodoList[index].Id == Id {
-			todoList = tr.TodoList[index]
-			if tr.TodoList[len(tr.TodoList)-1].Id == Id {
-				tr.TodoList[index] = todoList
-			} else {
-				copy(tr.TodoList[index:],tr.TodoList[index+1:])
-				tr.TodoList[len(tr.TodoList)-1] = todoList
-			}
-			tr.TodoList = tr.TodoList[:len(tr.TodoList)-1]
-			break
-		}
+	for k,v := range todo {
+		res1 := strings.ToUpper(k)
+		log.Print("test : ",res1," value : ",v)
 	}
 	return *todoList, nil
 }
 
-func (tr *TodoRepo) Update(Id int64, todo *entity.Todo) (entity.Todo,error){
-	var todoList *entity.Todo
-	for index:= range tr.TodoList {
-		if tr.TodoList[index].Id == Id {
-			tr.TodoList[index] = todo
-			todoList  = tr.TodoList[index]
-			break
+func (tr *TodoRepo) GetById(Id int64) (entity.Todo,error) {
+	result := tr.DB.QueryRow("SELECT ID,TITLE,CONTENT,IS_DONE,CREATE_AT FROM todo.todo WHERE ID = ? ", Id)
+
+	var todo entity.Todo
+		err := result.Scan(
+			&todo.Id,
+			&todo.Title,
+			&todo.Content,
+			&todo.IsDone,
+			&todo.CreateAt,
+		)
+		if err != nil {
+			log.Print(todo)
+			return todo,err
 		}
-	}
-	return *todoList, nil
+
+	return todo,nil
+
 }
