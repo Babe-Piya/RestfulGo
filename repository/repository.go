@@ -2,10 +2,12 @@ package repository
 
 import (
 	"strings"
+	"fmt"
 	"errors"
 	"database/sql"
 	"log"
 	"restfulGo/entity"
+	"github.com/gobeam/stringy"
 )
 
 type TodoRepo struct {
@@ -18,11 +20,11 @@ func CreateRepo(db *sql.DB) TodoRepoInterface {
 
 func (tr *TodoRepo) Add(todo *entity.Todo) (int64, error) {
 	stm,err := tr.DB.Prepare("INSERT INTO todo.todo (TITLE,CONTENT) VALUE (?,?)")
+	
 	if err!= nil {
 		return 0,errors.New("error")
 	}
 	defer stm.Close()
-
 	result,err := stm.Exec(&todo.Title,&todo.Content)
 	if err!= nil {
 		return 0,errors.New("error")
@@ -70,13 +72,46 @@ func (tr *TodoRepo) Del(Id int64) (entity.Todo, error) {
 	return getbyID,nil
 }
 
-func (tr *TodoRepo) Update(Id int64, todo map[string]interface{}) (entity.Todo,error){
-	var todoList *entity.Todo
-	for k,v := range todo {
-		res1 := strings.ToUpper(k)
-		log.Print("test : ",res1," value : ",v)
+func changeToQueury (query map[string]interface{}) string{
+	set := make([]string,0,len(query))
+
+	for k,v := range query {
+		key := stringy.New(k)
+		sneakCase := key.SnakeCase("?","")
+		valueType := fmt.Sprintf("%T", v)
+		if valueType =="bool" {
+			set = append(set,sneakCase.ToUpper()+"="+fmt.Sprintf("%v",v))
+		} else {
+			set = append(set,sneakCase.ToUpper()+"="+fmt.Sprintf("'%v'",v))
+		}
+		
 	}
-	return *todoList, nil
+	return strings.Join(set,", ")
+}
+
+func (tr *TodoRepo) Update(Id int64, todo map[string]interface{}) (entity.Todo,error){
+	var todoList entity.Todo
+	 sql := "UPDATE todo.todo SET "+changeToQueury(todo)+" WHERE ID = ?"
+
+	 log.Print(sql)
+	 stm,err := tr.DB.Prepare(sql)	 
+	 if err != nil {
+		 return todoList, err
+	 }
+	 defer stm.Close()
+
+	_, err = stm.Exec(Id)
+	 if err != nil{
+		 return todoList,errors.New("can't process update data")
+	 }
+
+	 todoList,err = tr.GetById(Id) 
+	 if err != nil {
+		return todoList, errors.New("can't process update data, id not found")
+	}
+
+
+	return todoList, nil
 }
 
 func (tr *TodoRepo) GetById(Id int64) (entity.Todo,error) {

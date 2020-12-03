@@ -26,15 +26,14 @@ func (uc TodoUsecase) Get() []entity.Todo {
 }
 
 func (uc TodoUsecase) Del(Id int64) (entity.Todo, error) {
-
+	
 			return  uc.repo.Del(Id)
 
 }
 
-func (uc TodoUsecase) Update(Id int64,todo map[string]interface{}) (entity.Todo,error){
-	var todoList entity.Todo
-			 uc.repo.Update(Id,todo)
+func (uc TodoUsecase) Update(Id int64, todo map[string]interface{}) (entity.Todo,error){
+	todoList,err := uc.repo.Update(Id,todo)
 
-			return todoList,nil
+			return todoList,err
 
 }
